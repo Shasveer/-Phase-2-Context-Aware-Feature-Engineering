@@ -1,0 +1,7 @@
+customer_id,region,debt,income,load_shedding_hours,support_tickets,township_flag,ethical_metadata
+1001,Gauteng,4200,12000,18,0,0,"privacy_reviewed"
+1002,Gauteng,8500,15000,42,2,1,"privacy_reviewed"
+1003,Western Cape,1200,9000,6,0,0,"privacy_reviewed"
+1004,KwaZulu-Natal,6400,11000,72,4,1,"privacy_reviewed"
+1005,Limpopo,0,7000,96,0,1,"privacy_reviewed"
+1006,Eastern Cape,3100,8000,126,1,1,"privacy_reviewed"
