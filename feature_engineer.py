@@ -76,8 +76,10 @@ class FeatureEngineer:
         self._add_feature("load_shedding_cos", np.cos(phase), rationale)
         return self
 
-    def regional_benchmarks(self, train_stats: Any = None) -> "FeatureEngineer":
-        """Add regional income benchmarks from training data only."""
+    def regional_benchmarks(
+        self, train_stats: Any = None, is_training: bool = True
+    ) -> "FeatureEngineer":
+        """Add training-fitted regional benchmarks or apply supplied statistics."""
         region_column = self._column(self.df, ("region", "province", "location"))
         value_column = self._column(
             self.df, ("income", "monthly_income", "annual_income", "transaction_amount")
@@ -88,6 +90,10 @@ class FeatureEngineer:
             )
             return self
 
+        if train_stats is None and not is_training:
+            raise ValueError(
+                "Inference regional benchmarks require train_stats fitted on training data"
+            )
         if train_stats is None:
             source = self.df[[region_column, value_column]].copy()
             source[value_column] = pd.to_numeric(source[value_column], errors="coerce")
@@ -167,21 +173,13 @@ class FeatureEngineer:
 
     def validate_multicollinearity(self, threshold: float = 0.85) -> "FeatureEngineer":
         """Drop later engineered features that duplicate earlier numeric features."""
-        protected = {
-            "financial_strain_ratio",
-            "load_shedding_sin",
-            "load_shedding_cos",
-            "regional_income_benchmark",
-            "regional_sample_count",
-            "support_tickets_zero_flag",
-            "support_tickets_log1p",
-        }
         candidates = [
             name for name in self._engineered_features if name in self.df and pd.api.types.is_numeric_dtype(self.df[name])
         ]
         retained: list[str] = []
+        usable_correlation = len(self.df) > len(candidates) + 1
         for name in candidates:
-            if name not in protected and any(
+            if usable_correlation and any(
                 abs(self.df[[name, other]].corr().iloc[0, 1]) > threshold
                 for other in retained
             ):
@@ -196,14 +194,7 @@ class FeatureEngineer:
             if np.isfinite(self._max_vif) and self._max_vif <= 5.0:
                 break
             vif_values = self._vif_values(retained)
-            removable = [
-                (index, name)
-                for index, name in enumerate(retained)
-                if name not in protected
-            ]
-            if not removable:
-                break
-            remove_index = max(removable, key=lambda item: vif_values[item[0]])[0]
+            remove_index = int(np.argmax(vif_values))
             remove_name = retained[remove_index]
             self.df.drop(columns=remove_name, inplace=True)
             self._removed_features.append(remove_name)
@@ -228,12 +219,14 @@ class FeatureEngineer:
             return 1.0
         return float(np.nanmax(self._vif_values(columns)))
 
-    def run_full_engineering(self) -> pd.DataFrame:
+    def run_full_engineering(
+        self, train_stats: Any = None, is_training: bool = True
+    ) -> pd.DataFrame:
         """Execute all feature engineering steps and restore source metadata."""
         try:
             self.create_financial_strain_ratio()
             self.encode_load_shedding_impact()
-            self.regional_benchmarks()
+            self.regional_benchmarks(train_stats=train_stats, is_training=is_training)
             self.encode_support_tickets()
             self.validate_multicollinearity()
             self.df.attrs.update(self._preserved_attrs)
@@ -255,7 +248,7 @@ def main() -> None:
         raise FileNotFoundError(f"Required Milestone 1 input not found: {input_path}")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     engineer = FeatureEngineer(pd.read_csv(input_path))
-    engineered = engineer.run_full_engineering()
+    engineered = engineer.run_full_engineering(is_training=True)
     engineered.to_csv(output_path, index=False)
     print(engineer)
 

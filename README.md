@@ -89,14 +89,19 @@ behind each benchmark. Regions with fewer than 50 training observations are
 recorded in `feature_metadata` as a warning so downstream users can apply
 appropriate caution.
 
-For inference, pass precomputed training statistics rather than recalculating
-them on inference data:
+For inference, pass precomputed training statistics and explicitly mark the
+operation as inference. Calling the inference path without `train_stats` is
+rejected, so validation or production rows cannot silently fit their own
+benchmarks:
 
 ```python
 from feature_engineer import FeatureEngineer
 
 inference_engineer = FeatureEngineer(inference_df)
-inference_engineer.regional_benchmarks(train_stats)
+inference_engineer.run_full_engineering(
+	train_stats=train_stats,
+	is_training=False,
+)
 ```
 
 `train_stats` may be a dataframe containing `region`,
@@ -124,12 +129,14 @@ The pipeline applies two multicollinearity checks:
 1. Engineered numeric features with absolute pairwise correlation greater than
 	`0.85` are rejected when they are ancillary duplicates.
 2. For sufficiently large datasets, features are removed iteratively until the
-	reported maximum VIF is at most `5.0`.
+	reported maximum VIF is at most `5.0`. This safeguard can remove any
+	engineered feature, including a requested feature whose values are too
+	collinear for the supplied dataset; the removal and rationale are retained
+	in `feature_metadata`.
 
-The core semantic outputs are retained so that the financial, infrastructure,
-regional, and zero-inflated business concepts remain inspectable. Very small
-fixtures do not produce a meaningful VIF estimate; these are reported as
-`1.0` rather than triggering unstable removals.
+Very small fixtures do not produce a meaningful VIF estimate; these are
+reported as `1.0` rather than triggering unstable removals. Production-sized
+datasets are subject to the strict limit.
 
 ## Python API
 
@@ -139,7 +146,7 @@ from feature_engineer import FeatureEngineer
 
 cleaned = pd.read_csv("data/processed/cleaned_customers.csv")
 engineer = FeatureEngineer(cleaned)
-engineered = engineer.run_full_engineering()
+engineered = engineer.run_full_engineering(is_training=True)
 
 print(engineer)
 print(engineer.feature_metadata)
@@ -157,7 +164,7 @@ statistics or inspect intermediate results:
 ```python
 engineer.create_financial_strain_ratio()
 engineer.encode_load_shedding_impact()
-engineer.regional_benchmarks(train_stats=train_stats)
+	engineer.regional_benchmarks(train_stats=train_stats, is_training=False)
 engineer.encode_support_tickets()
 engineer.validate_multicollinearity()
 ```
