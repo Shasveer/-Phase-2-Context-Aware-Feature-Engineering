@@ -19,6 +19,7 @@ class FeatureEngineer:
         self._removed_features: list[str] = []
         self._max_vif = 1.0
         self._preserved_attrs = dict(getattr(df, "attrs", {}))
+        self.train_stats: pd.DataFrame | None = None
 
     @staticmethod
     def _column(df: pd.DataFrame, names: tuple[str, ...]) -> str | None:
@@ -94,9 +95,27 @@ class FeatureEngineer:
                 regional_income_benchmark="mean", regional_sample_count="count"
             ).reset_index()
         elif isinstance(train_stats, Mapping):
-            stats = pd.DataFrame(
-                [{region_column: region, **values} for region, values in train_stats.items()]
-            )
+            rows = []
+            for region, values in train_stats.items():
+                if isinstance(values, Mapping):
+                    benchmark = next(
+                        (values[key] for key in (
+                            "regional_income_benchmark", "mean_income", "income_mean", "mean"
+                        ) if key in values), None
+                    )
+                    sample_count = next(
+                        (values[key] for key in (
+                            "regional_sample_count", "sample_count", "count", "n"
+                        ) if key in values), None
+                    )
+                else:
+                    benchmark = values
+                    sample_count = None
+                row = {region_column: region, "regional_income_benchmark": benchmark}
+                if sample_count is not None:
+                    row["regional_sample_count"] = sample_count
+                rows.append(row)
+            stats = pd.DataFrame(rows)
         else:
             stats = pd.DataFrame(train_stats).copy()
 
@@ -107,6 +126,7 @@ class FeatureEngineer:
             raise ValueError(
                 "train_stats must contain the region and regional_income_benchmark columns"
             )
+        self.train_stats = stats.copy()
         merge_columns = [region_column, benchmark_column]
         if count_column in stats.columns:
             merge_columns.append(count_column)
