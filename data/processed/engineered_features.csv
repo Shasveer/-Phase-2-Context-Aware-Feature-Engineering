@@ -1,7 +1,7 @@
-customer_id,region,debt,income,load_shedding_hours,support_tickets,township_flag,ethical_metadata,financial_strain_ratio,load_shedding_sin,load_shedding_cos,regional_income_benchmark,support_tickets_zero_flag,support_tickets_log1p
-1001,Gauteng,4200,12000,18,0,0,privacy_reviewed,0.35,0.6234898018587335,0.7818314824680298,13500.0,0,0.0
-1002,Gauteng,8500,15000,42,2,1,privacy_reviewed,0.5666666666666667,1.0,6.123233995736766e-17,13500.0,1,1.0986122886681096
-1003,Western Cape,1200,9000,6,0,0,privacy_reviewed,0.13333333333333333,0.2225209339563144,0.9749279121818236,9000.0,0,0.0
-1004,KwaZulu-Natal,6400,11000,72,4,1,privacy_reviewed,0.5818181818181818,0.43388373911755823,-0.900968867902419,11000.0,1,1.6094379124341003
-1005,Limpopo,0,7000,96,0,1,privacy_reviewed,0.0,-0.433883739117558,-0.9009688679024191,7000.0,0,0.0
-1006,Eastern Cape,3100,8000,126,1,1,privacy_reviewed,0.3875,-1.0,-1.8369701987210297e-16,8000.0,1,0.6931471805599453
+customer_id,region,debt,income,load_shedding_hours,support_tickets,township_flag,ethical_metadata,financial_strain_ratio,load_shedding_sin,load_shedding_cos,regional_income_benchmark,regional_sample_count,support_tickets_zero_flag,support_tickets_log1p
+1001,Gauteng,4200,12000,18,0,0,privacy_reviewed,0.35,0.6234898018587335,0.7818314824680298,13500.0,2,0,0.0
+1002,Gauteng,8500,15000,42,2,1,privacy_reviewed,0.5666666666666667,1.0,6.123233995736766e-17,13500.0,2,1,1.0986122886681096
+1003,Western Cape,1200,9000,6,0,0,privacy_reviewed,0.13333333333333333,0.2225209339563144,0.9749279121818236,9000.0,1,0,0.0
+1004,KwaZulu-Natal,6400,11000,72,4,1,privacy_reviewed,0.5818181818181818,0.43388373911755823,-0.900968867902419,11000.0,1,1,1.6094379124341003
+1005,Limpopo,0,7000,96,0,1,privacy_reviewed,0.0,-0.433883739117558,-0.9009688679024191,7000.0,1,0,0.0
+1006,Eastern Cape,3100,8000,126,1,1,privacy_reviewed,0.3875,-1.0,-1.8369701987210297e-16,8000.0,1,1,0.6931471805599453

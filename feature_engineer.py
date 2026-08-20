@@ -172,6 +172,7 @@ class FeatureEngineer:
             "load_shedding_sin",
             "load_shedding_cos",
             "regional_income_benchmark",
+            "regional_sample_count",
             "support_tickets_zero_flag",
             "support_tickets_log1p",
         }
